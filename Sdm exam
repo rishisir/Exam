@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मराठी ऑनलाइन परीक्षा - इयत्ता ७ वी</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .exam-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4757;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .exam-content {
+            padding: 30px;
+        }
+
+        .question {
+            background: #f8f9fa;
+            margin-bottom: 25px;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .question:hover {
+            transform: translateY(-2px);
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #e8f2ff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .results {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .grade {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        .grade.excellent {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .grade.good {
+            background: #3498db;
+            color: white;
+        }
+
+        .grade.average {
+            background: #f39c12;
+            color: white;
+        }
+
+        .grade.poor {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            z-index: 1001;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .exam-info {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+            .timer {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="timer" id="timer">वेळ: 02:00:00</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>मराठी प्रश्नपत्रिका</h1>
+            <p>इयत्ता ७ वी</p>
+            <div class="exam-info">
+                <div class="info-item">एकूण गुण: १००</div>
+                <div class="info-item">वेळ: २ तास</div>
+                <div class="info-item">प्रत्येक प्रश्न: २ गुण</div>
+                <div class="info-item">एकूण प्रश्न: ५०</div>
+            </div>
+        </div>
+
+        <div class="exam-content" id="examContent">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <div class="results" id="results">
+            <h2>परीक्षेचा निकाल</h2>
+            <div class="score" id="finalScore"></div>
+            <div class="grade" id="grade"></div>
+            <p id="message"></p>
+            <button class="submit-btn" onclick="restartExam()">पुन्हा परीक्षा द्या</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "\"जय जय महाराष्ट्र माझा\" हे कोणत्या प्रकारचे लेखन आहे?",
+                options: ["कथा", "गीत", "निबंध", "कविता"],
+                correct: 1
+            },
+            {
+                q: "महाराष्ट्र गीतात कोणत्या रूपात वर्णन केला आहे?",
+                options: ["आई", "देव", "मित्र", "शेतकरी"],
+                correct: 0
+            },
+            {
+                q: "\"सह्याद्री\" शब्द कशासाठी वापरला आहे?",
+                options: ["किल्ले", "नद्या", "डोंगर", "पिके"],
+                correct: 2
+            },
+            {
+                q: "या गीताचे कवी कोण?",
+                options: ["बालकवी", "राजा बडे", "अशोक कोतवाल", "दत्तात्रय विरकर"],
+                correct: 0
+            },
+            {
+                q: "\"स्वप्नं विकणारा\" कोण आहे?",
+                options: ["शेतकरी", "एक माणूस", "मुलगा", "लेखक"],
+                correct: 1
+            },
+            {
+                q: "मुलांना स्वप्नं का हवी होती?",
+                options: ["भांडण्यासाठी", "आनंदासाठी", "अभ्यास टाळण्यासाठी", "खेळण्यासाठी"],
+                correct: 1
+            },
+            {
+                q: "\"स्वप्नं विकणारा माणूस\" हा धडा कोणत्या प्रकारचा आहे?",
+                options: ["कथा", "कविता", "निबंध", "प्रवासवर्णन"],
+                correct: 0
+            },
+            {
+                q: "\"स्वप्नं विकणारा माणूस\" हा धडा कोणी लिहिला?",
+                options: ["अशोक कोतवाल", "राजा बडे", "द.वि. विरकर", "बालकवी"],
+                correct: 0
+            },
+            {
+                q: "\"तोडणी\" या धड्यात काय दाखवले आहे?",
+                options: ["उत्सव", "शेतातील काम", "लग्न", "खेळ"],
+                correct: 1
+            },
+            {
+                q: "तोडणी करताना मुलांचे भाव कसे असतात?",
+                options: ["थकलेले", "उदास", "उत्साही", "रागावलेले"],
+                correct: 2
+            },
+            {
+                q: "\"तोडणी\" मध्ये कोणत्या पिकाचा उल्लेख आहे?",
+                options: ["भात", "ज्वारी", "गहू", "ऊस"],
+                correct: 1
+            },
+            {
+                q: "\"तोडणी\" हा धडा कोणी लिहिला?",
+                options: ["अशोक कोतवाल", "दत्तात्रय विरकर", "राजा बडे", "बालकवी"],
+                correct: 1
+            },
+            {
+                q: "\"श्रावणमास\" या कवितेत कोणत्या ऋतूचे वर्णन आहे?",
+                options: ["ग्रीष्म", "पावसाळा", "हिवाळा", "वसंत"],
+                correct: 1
+            },
+            {
+                q: "\"श्रावणमास\" कवितेचे कवी कोण?",
+                options: ["बालकवी", "राजा बडे", "अशोक कोतवाल", "कुसुमाग्रज"],
+                correct: 0
+            },
+            {
+                q: "श्रावण ऋतूत निसर्ग कसा दिसतो?",
+                options: ["कोरडा", "हिरवागार", "धुळीचा", "गरम"],
+                correct: 1
+            },
+            {
+                q: "श्रावण ऋतूत आकाशात काय घडते?",
+                options: ["गडगडाट", "हिमवर्षाव", "धूळवादळ", "दंव"],
+                correct: 0
+            },
+            {
+                q: "\"श्रावणमास\" मध्ये कोणते फूल उमलते?",
+                options: ["गुलाब", "मोगरा", "जास्वंद", "कमळ"],
+                correct: 3
+            },
+            {
+                q: "\"भांड्यांच्या दुनियेत\" या धड्याचा विषय काय आहे?",
+                options: ["शेतातील साधने", "भांडी", "खेळणी", "गाणी"],
+                correct: 1
+            },
+            {
+                q: "धड्यात भांड्यांना कसे दाखवले आहे?",
+                options: ["बोलणारे", "निर्जीव", "शांत", "नाचणारे"],
+                correct: 0
+            },
+            {
+                q: "पितळी भांडे कसे दिसते?",
+                options: ["काळपट", "चमचमीत", "पांढरट", "निळसर"],
+                correct: 1
+            },
+            {
+                q: "भांड्यांच्या दुनियेतून कोणता संदेश मिळतो?",
+                options: ["भांडावे", "शिस्त ठेवावी", "खेळ करावा", "अभ्यास करावा"],
+                correct: 1
+            },
+            {
+                q: "\"जय जय महाराष्ट्र माझा\" गीताचा मुख्य भाव कोणता आहे?",
+                options: ["देशभक्ती", "मैत्री", "ज्ञान", "परिश्रम"],
+                correct: 0
+            },
+            {
+                q: "गीतात महाराष्ट्राची ताकद कुठे दाखवली आहे?",
+                options: ["सह्याद्री", "वारसा", "संत-महाल", "सर्वच"],
+                correct: 3
+            },
+            {
+                q: "\"स्वप्नं विकणारा माणूस\" मुलांना कोणता गुण शिकवतो?",
+                options: ["मेहनत", "आनंद", "सत्य", "मैत्री"],
+                correct: 1
+            },
+            {
+                q: "\"तोडणी\" धड्यात शेतकरी कसा दिसतो?",
+                options: ["आळशी", "कष्टाळू", "रागावलेला", "आराम करणारा"],
+                correct: 1
+            },
+            {
+                q: "\"श्रावणमास\" मध्ये पावसाचे स्वागत कशाने झाले आहे?",
+                options: ["गाणी", "नाच", "फुले-निसर्ग", "उत्सव"],
+                correct: 2
+            },
+            {
+                q: "\"भांड्यांच्या दुनियेत\" मध्ये भांड्यांची भांडणे कशाचे प्रतीक आहेत?",
+                options: ["एकजूट", "वाद", "शांती", "शहाणपण"],
+                correct: 1
+            },
+            {
+                q: "\"जय जय महाराष्ट्र माझा\" या गीतात महाराष्ट्राचे वर्णन कशा रूपात केले आहे?",
+                options: ["आई", "वडील", "भाऊ", "मित्र"],
+                correct: 0
+            },
+            {
+                q: "\"स्वप्नं विकणारा\" माणूस कसा आहे?",
+                options: ["उदास", "आनंदी", "लोभी", "थकलेला"],
+                correct: 1
+            },
+            {
+                q: "\"तोडणी\" हा धडा कोणत्या वर्गाशी संबंधित आहे?",
+                options: ["शहरातील काम", "ग्रामीण जीवन", "उत्सव", "व्यवसाय"],
+                correct: 1
+            },
+            {
+                q: "\"श्रावणमास\" मध्ये जमिनीचा रंग कसा दिसतो?",
+                options: ["काळसर", "लाल", "हिरवा", "पिवळा"],
+                correct: 2
+            },
+            {
+                q: "\"भांड्यांच्या दुनियेत\" वाद का होतो?",
+                options: ["श्रेष्ठ कोण यावरून", "खेळावरून", "अभ्यासावरून", "नृत्यावरून"],
+                correct: 0
+            },
+            {
+                q: "महाराष्ट्राचे हृदय गीतात कुठे आहे?",
+                options: ["किल्ल्यांत", "नद्यांत", "शेतात", "संतांच्या शिकवणीत"],
+                correct: 3
+            },
+            {
+                q: "\"स्वप्नं विकणारा\" कथा मुलांना कोणता धडा शिकवते?",
+                options: ["स्वप्नं खरेदी करावीत", "आनंद विकत घेता येतो", "जीवनात स्वप्नं महत्त्वाची असतात", "अभ्यास करावा"],
+                correct: 2
+            },
+            {
+                q: "\"तोडणी\" मध्ये मुलांना कोणते वातावरण मिळते?",
+                options: ["थंड", "आनंदी", "उदास", "एकाकी"],
+                correct: 1
+            },
+            {
+                q: "\"श्रावणमास\" कवितेत पावसामुळे काय होते?",
+                options: ["नदी भरते", "शेतात पिके येतात", "झाडे हिरवी होतात", "सर्वच"],
+                correct: 3
+            },
+            {
+                q: "\"भांड्यांच्या दुनियेत\" कथेत कोण जिंकतो?",
+                options: ["पातेली", "मोठं भांडं", "सगळ्यांचा पराभव होतो", "शिस्त"],
+                correct: 3
+            },
+            {
+                q: "\"जय जय महाराष्ट्र\" गीतात संतांची आठवण का दिली आहे?",
+                options: ["त्यांनी समाज घडवला", "ते धनवान होते", "त्यांनी युद्ध केले", "ते राजे होते"],
+                correct: 0
+            },
+            {
+                q: "\"स्वप्नं विकणारा\" मध्ये स्वप्नं कोण विकत घेतात?",
+                options: ["पालक", "मुलं", "शिक्षक", "शेतकरी"],
+                correct: 1
+            },
+            {
+                q: "\"तोडणी\" मध्ये शेतकरी पिकाची तोडणी कधी करतो?",
+                options: ["पिक पिकल्यावर", "कापणी आधी", "उन्हाळ्यात", "हिवाळ्यात"],
+                correct: 0
+            },
+            {
+                q: "\"श्रावणमास\" मध्ये ढग कसे आहेत?",
+                options: ["पांढरे", "काळे", "लाल", "निळे"],
+                correct: 1
+            },
+            {
+                q: "\"भांड्यांच्या दुनियेत\" धड्यात भांड्यांची भांडणे कशामुळे थांबतात?",
+                options: ["मोठं भांडं समजूत घालते", "सर्वच शांत होतात", "कोणी एक जिंकतो", "कुणीच नाही"],
+                correct: 0
+            },
+            {
+                q: "महाराष्ट्राचे सौंदर्य गीतात कशाने दाखवले आहे?",
+                options: ["शेत", "नद्या", "डोंगर-दऱ्या", "सर्वच"],
+                correct: 3
+            },
+            {
+                q: "\"स्वप्नं विकणारा\" धड्यात कोणत्या गोष्टींचा उल्लेख नाही?",
+                options: ["मुलं", "स्वप्नं", "भांडणं", "हसू"],
+                correct: 2
+            },
+            {
+                q: "\"तोडणी\" धड्यात कोणत्या साधनांचा उपयोग होतो?",
+                options: ["हत्यारं", "विळा", "लाठी", "कुऱ्हाड"],
+                correct: 1
+            },
+            {
+                q: "\"श्रावणमास\" कवितेत कोणत्या सणाचे वर्णन आहे?",
+                options: ["नागपंचमी", "होळी", "दिवाळी", "दसरा"],
+                correct: 0
+            },
+            {
+                q: "\"भांड्यांच्या दुनियेत\" धड्यात भांड्यांच्या वादातून काय शिकायला मिळते?",
+                options: ["भांड्यांची नावे", "एकजूट हवी", "भांडावं लागतं", "मोठं व्हावं"],
+                correct: 1
+            },
+            {
+                q: "\"जय जय महाराष्ट्र माझा\" या गीतातून कोणता भाव उमटतो?",
+                options: ["देशप्रेम", "वाद", "राग", "स्पर्धा"],
+                correct: 0
+            },
+            {
+                q: "\"स्वप्नं विकणारा\" माणूस मुलांना काय देतो?",
+                options: ["दुःख", "आनंद", "शंका", "राग"],
+                correct: 1
+            },
+            {
+                q: "\"श्रावणमास\" कवितेत कवी कोणत्या ऋतूचे सौंदर्य मांडतो?",
+                options: ["उन्हाळा", "पावसाळा", "हिवाळा", "वसंत"],
+                correct: 1
+            }
+        ];
+
+        let currentAnswers = new Array(questions.length).fill(-1);
+        let timeLeft = 7200; // 2 hours in seconds
+        let timerInterval;
+
+        function initExam() {
+            displayQuestions();
+            startTimer();
+            updateProgressBar();
+        }
+
+        function displayQuestions() {
+            const examContent = document.getElementById('examContent');
+            let html = '';
+
+            questions.forEach((question, index) => {
+                html += `
+                    <div class="question">
+                        <div class="question-number">प्रश्न ${index + 1}.</div>
+                        <div class="question-text">${question.q}</div>
+                        <div class="options">
+                            ${question.options.map((option, optIndex) => `
+                                <label class="option" onclick="selectAnswer(${index}, ${optIndex})">
+                                    <input type="radio" name="q${index}" value="${optIndex}">
+                                    <span>${String.fromCharCode(65 + optIndex)}) ${option}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '<button class="submit-btn" onclick="submitExam()">परीक्षा सबमिट करा</button>';
+            examContent.innerHTML = html;
+        }
+
+        function selectAnswer(questionIndex, optionIndex) {
+            currentAnswers[questionIndex] = optionIndex;
+            
+            // Remove previous selection
+            const questionDiv = document.querySelectorAll('.question')[questionIndex];
+            questionDiv.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selection to clicked option
+            questionDiv.querySelectorAll('.option')[optionIndex].classList.add('selected');
+            
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const answered = currentAnswers.filter(answer => answer !== -1).length;
+            const progress = (answered / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const hours = Math.floor(timeLeft / 3600);
+                const minutes = Math.floor((timeLeft % 3600) / 60);
+                const seconds = timeLeft % 60;
+                
+                document.getElementById('timer').textContent = 
+                    `वेळ: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        function submitExam() {
+            clearInterval(timerInterval);
+            
+            let score = 0;
+            questions.forEach((question, index) => {
+                if (currentAnswers[index] === question.correct) {
+                    score += 2;
+                }
+            });
+
+            displayResults(score);
+        }
+
+        function displayResults(score) {
+            document.getElementById('examContent').style.display = 'none';
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            
+            document.getElementById('finalScore').textContent = `${score}/100`;
+            
+            const percentage = score;
+            let grade, message, gradeClass;
+            
+            if (percentage >= 90) {
+                grade = 'उत्कृष्ट!';
+                message = 'तुमची कामगिरी अप्रतिम आहे!';
+                gradeClass = 'excellent';
+            } else if (percentage >= 75) {
+                grade = 'चांगले!';
+                message = 'तुमची कामगिरी चांगली आहे!';
+                gradeClass = 'good';
+            } else if (percentage >= 50) {
+                grade = 'सरासरी';
+                message = 'आणखी मेहनत करा!';
+                gradeClass = 'average';
+            } else {
+                grade = 'अधिक मेहनत हवी';
+                message = 'आणखी अभ्यास करा!';
+                gradeClass = 'poor';
+            }
+            
+            const gradeElement = document.getElementById('grade');
+            gradeElement.textContent = grade;
+            gradeElement.className = `grade ${gradeClass}`;
+            document.getElementById('message').textContent = message;
+        }
+
+        function restartExam() {
+            currentAnswers = new Array(questions.length).fill(-1);
+            timeLeft = 7200;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('examContent').style.display = 'block';
+            initExam();
+        }
+
+        // Initialize exam when page loads
+        window.onload = function() {
+            initExam();
+        };
+    </script>
+</body>
+</html>
